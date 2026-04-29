@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>Cocos → Unity 迁移管线 v3.4</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #fff;
+    color: #1a1a2e;
+    font-size: 13.5px;
+    line-height: 1.6;
+    padding: 0;
+    width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0f0c29, #1a1a4e, #24243e);
+    color: #fff;
+    padding: 32px 40px 24px;
+    text-align: center;
+    position: relative;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .header h1 .arrow { color: #4fc3f7; }
+  .header .subtitle {
+    font-size: 14px;
+    color: #aab4cc;
+    margin-bottom: 14px;
+  }
+  .header .badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-blue { background: #2563eb; color: #fff; }
+  .badge-green { background: #16a34a; color: #fff; }
+  .badge-orange { background: #ea580c; color: #fff; }
+  .badge-purple { background: #7c3aed; color: #fff; }
+  .badge-gray { background: #4b5563; color: #fff; }
+
+  .main { padding: 28px 36px 40px; }
+
+  .intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  .intro-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .intro-box h3 {
+    font-size: 14px;
+    color: #334155;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .intro-box ul { padding-left: 18px; font-size: 13px; color: #475569; }
+  .intro-box li { margin-bottom: 3px; }
+
+  .section {
+    margin-bottom: 26px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #1e3a5f;
+  }
+  .section-num {
+    background: #1e3a5f;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a5f;
+  }
+
+  .pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .phase-card {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .phase-head {
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .phase-head .num {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 11px;
+  }
+  .phase-body {
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: #374151;
+    background: #fff;
+  }
+  .phase-body .cmd {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+    font-size: 11.5px;
+    color: #1e40af;
+    margin: 6px 0;
+    word-break: break-all;
+    display: block;
+  }
+  .phase-body .gate {
+    margin-top: 8px;
+    padding: 5px 8px;
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 2px;
+    font-size: 11.5px;
+    color: #92400e;
+  }
+  .p0 .phase-head { background: #dbeafe; color: #1e40af; }
+  .p2 .phase-head { background: #d1fae5; color: #065f46; }
+  .p3 .phase-head { background: #fef3c7; color: #92400e; }
+  .p4 .phase-head { background: #ede9fe; color: #5b21b6; }
+  .p5 .phase-head { background: #fce7f3; color: #9d174d; }
+  .p6 .phase-head { background: #f1f5f9; color: #334155; }
+  .p7 .phase-head { background: #f0fdf4; color: #166534; }
+
+  .pipeline-row2 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .flow-arrow {
+    text-align: center;
+    padding: 6px 0;
+    color: #94a3b8;
+    font-size: 20px;
+    letter-spacing: 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-bottom: 4px;
+  }
+  th {
+    background: #1e3a5f;
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tr:hover td { background: #eef2ff; }
+  .mono {
+    font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+    font-size: 12px;
+    color: #1e40af;
+  }
+
+  .mapping-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .pitfall-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .pitfall-card {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+  .pitfall-card.tip {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+  }
+  .pitfall-card h4 {
+    font-size: 12.5px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pitfall-card p { font-size: 12px; color: #475569; }
+
+  .quickstart {
+    background: #f0f4ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 8px;
+    padding: 18px 22px;
+  }
+  .quickstart ol {
+    padding-left: 20px;
+    font-size: 13px;
+    color: #374151;
+  }
+  .quickstart li { margin-bottom: 5px; }
+  .quickstart .cmd {
+    display: inline;
+    background: #e0e7ff;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+    font-size: 11.5px;
+    color: #3730a3;
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding: 16px 0;
+    border-top: 2px solid #1e3a5f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .footer .ver { font-weight: 700; color: #1e3a5f; }
+
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-ph0 { background: #dbeafe; color: #1e40af; }
+  .tag-ph2 { background: #d1fae5; color: #065f46; }
+  .tag-ph3 { background: #fef3c7; color: #92400e; }
+  .tag-ph4 { background: #ede9fe; color: #5b21b6; }
+  .tag-ph5 { background: #fce7f3; color: #9d174d; }
+  .tag-ph6 { background: #f1f5f9; color: #334155; }
+  .tag-ph7 { background: #f0fdf4; color: #166534; }
+
+  .highlight { color: #2563eb; font-weight: 600; }
+
+  .prereq-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .prereq-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .prereq-card .icon { font-size: 24px; margin-bottom: 6px; }
+  .prereq-card .label { font-size: 12px; color: #64748b; }
+  .prereq-card .value { font-size: 14px; font-weight: 700; color: #1e3a5f; }
+
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .ref-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+  }
+  .ref-item .icon-ref {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    background: #1e3a5f;
+    color: #fff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .ref-item .ref-text { font-size: 12px; color: #374151; }
+  .ref-item .ref-file { font-size: 11px; color: #2563eb; font-family: monospace; }
+
+  .feature-highlight {
+    background: linear-gradient(135deg, #dbeafe, #ede9fe);
+    border: 2px solid #7c3aed;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .feature-highlight h3 {
+    font-size: 15px;
+    color: #5b21b6;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .feature-highlight ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+    padding-left: 20px;
+    font-size: 12.5px;
+    color: #374151;
+  }
+  .feature-highlight li { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Cocos <span class="arrow">→</span> Unity 迁移管线</h1>
+  <div class="subtitle">cocos-to-unity — 自动化跨引擎迁移工具链 v3.4</div>
+  <div class="badges">
+    <span class="badge badge-blue">Cocos 2.x & 3.x</span>
+    <span class="badge badge-green">纯 Python 脚本</span>
+    <span class="badge badge-purple">Built-in / URP / HDRP</span>
+    <span class="badge badge-orange">CLI 独立运行</span>
+    <span class="badge badge-gray">v3.4.0 · MIT</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- v3.4 New Features -->
+  <div class="feature-highlight">
+    <h3>🚀 v3.4 核心改进</h3>
+    <ul>
+      <li><strong>脚本 .meta 自动生成</strong>：translator.py 生成 .cs 时自动生成对应 .meta（包含唯一 GUID）</li>
+      <li><strong>预制体直接引用</strong>：Phase 4 转换时扫描脚本 GUID，直接写入 YAML 的 m_Script 字段</li>
+      <li><strong>Phase 5 可选</strong>：由于预制体转换时已直接引用，关联步骤成功率 100%</li>
+      <li><strong>执行顺序优化</strong>：Phase 2 脚本 → Phase 3 资产，确保 .meta 在预制体转换前生成</li>
+    </ul>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <div class="intro-box">
+      <h3>🎯 适用场景</h3>
+      <ul>
+        <li>将 Cocos Creator 2.x / 3.x 项目迁移到 Unity</li>
+        <li>转换 <code>.fire</code> / <code>.scene</code> / <code>.prefab</code> 文件</li>
+        <li>将 TypeScript / JavaScript 组件翻译为 C# MonoBehaviour</li>
+        <li>迁移 Spine / DragonBones / 音频 / UI 到 Unity</li>
+        <li>诊断映射不匹配问题</li>
+      </ul>
+    </div>
+    <div class="intro-box">
+      <h3>⚡ 技术栈</h3>
+      <ul>
+        <li><strong>Python 3.9+</strong>：仅用标准库，无需 pip install</li>
+        <li><strong>Unity 2020.3+</strong>：推荐 2022.3 LTS</li>
+        <li><strong>跨平台</strong>：Win / macOS / Linux</li>
+        <li><strong>LLM 驱动</strong>：OpenAI / Anthropic 自动切换，无 LLM 时降级骨架生成</li>
+        <li><strong>AI Agent</strong>：可被 AI Agent 调用完成完整迁移流程</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Prerequisites -->
+  <div class="prereq-grid">
+    <div class="prereq-card">
+      <div class="icon">🐍</div>
+      <div class="value">Python 3.9+</div>
+      <div class="label">仅用标准库，无需 pip install</div>
+    </div>
+    <div class="prereq-card">
+      <div class="icon">🎮</div>
+      <div class="value">Unity 2020.3+</div>
+      <div class="label">推荐 2022.3 LTS，任意渲染管线</div>
+    </div>
+    <div class="prereq-card">
+      <div class="icon">🤖</div>
+      <div class="value">AI Agent</div>
+      <div class="label">支持 OpenAI / Anthropic</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: 7-Phase Pipeline -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">7 阶段迁移管线</div>
+    </div>
+
+    <div class="pipeline-grid">
+      <!-- Phase 0 -->
+      <div class="phase-card p0">
+        <div class="phase-head"><span class="num">P0</span> 项目审计</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：生成 Cocos 项目的结构化清单</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 0</code>
+          <div style="font-size:12px; color:#475569;">
+            · Creator 版本自动检测<br>
+            · 资产分类统计<br>
+            · 风险 API 扫描<br>
+            · Spine 版本检测<br>
+            · 工作量评估: S / M / L
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="phase-card p2">
+        <div class="phase-head"><span class="num">P2</span> 脚本翻译</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：TS/JS → C# MonoBehaviour</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 2</code>
+          <div style="font-size:12px; color:#475569;">
+            · LLM 驱动翻译<br>
+            · 自动生成 .meta + GUID<br>
+            · 骨架生成降级模式<br>
+            · 单一职责 enforcement<br>
+            · 类名一致性校验
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="phase-card p3">
+        <div class="phase-head"><span class="num">P3</span> 资产迁移</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：媒体资源 → Unity</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 3</code>
+          <div style="font-size:12px; color:#475569;">
+            · PNG/JPG/WAV/MP3/TTF<br>
+            · 稳定 GUID 生成<br>
+            · 九宫格 border 提取<br>
+            · SpriteAtlas 可选生成<br>
+            · manifest.json 输出
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">▼ ▼ ▼</div>
+
+    <div class="pipeline-row2">
+      <!-- Phase 4 -->
+      <div class="phase-card p4">
+        <div class="phase-head"><span class="num">P4</span> 预制体转换</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：Cocos 节点 → Unity GameObject</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 4</code>
+          <div style="font-size:11px; color:#475569;">
+            · .fire / .scene / .prefab<br>
+            · Widget → RectTransform<br>
+            · Layout 类型解析<br>
+            · <strong>脚本 GUID 扫描</strong><br>
+            · 直接写入 YAML
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 5 -->
+      <div class="phase-card p5">
+        <div class="phase-head"><span class="num">P5</span> 脚本关联</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：修复 m_Script 引用</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 5</code>
+          <div style="font-size:11px; color:#475569;">
+            · UUID → ClassName 映射<br>
+            · 替换 fileID: 0<br>
+            · 成功率 100%<br>
+            · unmapped_scripts.json<br>
+            · --resolve 二次解析
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 6 -->
+      <div class="phase-card p6">
+        <div class="phase-head"><span class="num">P6</span> 动画转换</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：.anim → Unity AnimationClip</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 6</code>
+          <div style="font-size:11px; color:#475569;">
+            · Cocos 曲线提取<br>
+            · Unity Clip YAML 生成<br>
+            · Spine/龙骨 手动处理<br>
+            · 缓动降级警告
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 7 -->
+      <div class="phase-card p7">
+        <div class="phase-head"><span class="num">P7</span> 验证报告</div>
+        <div class="phase-body">
+          <div><strong>目标</strong>：完整性检查</div>
+          <code class="cmd">python pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 7</code>
+          <div style="font-size:11px; color:#475569;">
+            · 健康评分<br>
+            · null GUID 检查<br>
+            · 类名匹配校验<br>
+            · TODO 统计<br>
+            · report.md 输出
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Scripts Index -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">核心脚本索引</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%">脚本</th>
+          <th>功能说明</th>
+          <th style="width:10%">阶段</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">pipeline.py</td>
+          <td>主入口：7 阶段流水线编排，支持 --phase 单阶段执行</td>
+          <td><span class="tag tag-ph0">P0-7</span></td>
+        </tr>
+        <tr>
+          <td class="mono">translator.py</td>
+          <td>LLM 驱动 TS/JS → C# 翻译，自动生成 .meta 文件</td>
+          <td><span class="tag tag-ph2">P2</span></td>
+        </tr>
+        <tr>
+          <td class="mono">migrate_assets.py</td>
+          <td>资源复制 + Unity .meta 生成 + manifest 构建 + 九宫格</td>
+          <td><span class="tag tag-ph3">P3</span></td>
+        </tr>
+        <tr>
+          <td class="mono">convert_prefab.py</td>
+          <td>预制体/场景 YAML 转换，扫描脚本 GUID 直接写入</td>
+          <td><span class="tag tag-ph4">P4</span></td>
+        </tr>
+        <tr>
+          <td class="mono">link_scripts.py</td>
+          <td>脚本关联：UUID → ClassName → GUID，修复 m_Script 引用</td>
+          <td><span class="tag tag-ph5">P5</span></td>
+        </tr>
+        <tr>
+          <td class="mono">convert_anim.py</td>
+          <td>Cocos .anim → Unity AnimationClip YAML</td>
+          <td><span class="tag tag-ph6">P6</span></td>
+        </tr>
+        <tr>
+          <td class="mono">verify_migration.py</td>
+          <td>迁移验证：健康评分 + GUID 检查 + TODO 扫描</td>
+          <td><span class="tag tag-ph7">P7</span></td>
+        </tr>
+        <tr>
+          <td class="mono">fix_class_names.py</td>
+          <td>批量修复类名与文件名不一致问题</td>
+          <td><span class="tag tag-ph2">P2</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 3: References -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">参考文档</div>
+    </div>
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="icon-ref">📁</div>
+        <div>
+          <div class="ref-file">references/cocos-project-layout.md</div>
+          <div class="ref-text">Cocos 项目目录结构参考</div>
+        </div>
+      </div>
+      <div class="ref-item">
+        <div class="icon-ref">🔗</div>
+        <div>
+          <div class="ref-file">references/component-mapping.md</div>
+          <div class="ref-text">Cocos ↔ Unity 组件映射表</div>
+        </div>
+      </div>
+      <div class="ref-item">
+        <div class="icon-ref">⚡</div>
+        <div>
+          <div class="ref-file">references/api-mapping.md</div>
+          <div class="ref-text">Cocos API → Unity API 映射</div>
+        </div>
+      </div>
+      <div class="ref-item">
+        <div class="icon-ref">📦</div>
+        <div>
+          <div class="ref-file">references/asset-import-matrix.md</div>
+          <div class="ref-text">资源导入参数矩阵</div>
+        </div>
+      </div>
+      <div class="ref-item">
+        <div class="icon-ref">⚠️</div>
+        <div>
+          <div class="ref-file">references/scene-pitfalls.md</div>
+          <div class="ref-text">场景转换常见坑点</div>
+        </div>
+      </div>
+      <div class="ref-item">
+        <div class="icon-ref">🦴</div>
+        <div>
+          <div class="ref-file">references/spine-versions.md</div>
+          <div class="ref-text">Spine / DragonBones 版本参考</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Core API Mapping -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">核心 API 映射速查</div>
+    </div>
+    <div class="mapping-grid">
+      <div>
+        <table>
+          <thead>
+            <tr><th>Cocos API</th><th>Unity 对应</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">onLoad()</td><td class="mono">Awake()</td></tr>
+            <tr><td class="mono">start()</td><td class="mono">Start()</td></tr>
+            <tr><td class="mono">update(dt)</td><td class="mono">Update()</td></tr>
+            <tr><td class="mono">onDestroy()</td><td class="mono">OnDestroy()</td></tr>
+            <tr><td class="mono">onEnable() / onDisable()</td><td class="mono">OnEnable() / OnDisable()</td></tr>
+            <tr><td class="mono">@property</td><td class="mono">[SerializeField]</td></tr>
+            <tr><td class="mono">this.node</td><td class="mono">this.gameObject</td></tr>
+            <tr><td class="mono">getComponent&lt;T&gt;()</td><td class="mono">GetComponent&lt;T&gt;()</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <thead>
+            <tr><th>Cocos API</th><th>Unity 对应</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">cc.director.loadScene()</td><td class="mono">SceneManager.LoadScene()</td></tr>
+            <tr><td class="mono">cc.resources.load()</td><td class="mono">Resources.Load()</td></tr>
+            <tr><td class="mono">cc.instantiate()</td><td class="mono">Instantiate()</td></tr>
+            <tr><td class="mono">cc.find()</td><td class="mono">GameObject.Find()</td></tr>
+            <tr><td class="mono">scheduleOnce(cb, t)</td><td class="mono">Invoke(name, t)</td></tr>
+            <tr><td class="mono">cc.sys.localStorage</td><td class="mono">PlayerPrefs</td></tr>
+            <tr><td class="mono">cc.UITransform</td><td class="mono">RectTransform</td></tr>
+            <tr><td class="mono">cc.Canvas</td><td class="mono">Canvas + CanvasScaler</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Pitfalls -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">常见坑点 & 对策</div>
+    </div>
+    <div class="pitfall-grid">
+      <div class="pitfall-card">
+        <h4>❌ TMP 编译错误</h4>
+        <p>在安装 TextMeshPro 包之前引用了 TMP → 编译失败。<br><strong>对策</strong>：默认用 legacy <code>UI.Text</code>，确认 TMP 已装再切换。</p>
+      </div>
+      <div class="pitfall-card">
+        <h4>❌ 3D 坐标手性</h4>
+        <p>Cocos 3D 右手系 (Z+前)；Unity 左手系。<br><strong>对策</strong>：所有 3D 位置/旋转翻转 Z 轴。</p>
+      </div>
+      <div class="pitfall-card">
+        <h4>❌ 2.x 旋转符号</h4>
+        <p>Cocos 2.x 顺时针旋转；Unity 逆时针。<br><strong>对策</strong>：<code>convert_scene.py</code> 自动取反处理。</p>
+      </div>
+      <div class="pitfall-card">
+        <h4>❌ 2.x 锚点原点</h4>
+        <p>2.x 默认原点左下角；3.x 为中心。<br><strong>对策</strong>：审计自动检测并应用正确偏移公式。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>✅ Spine 版本锁定</h4>
+        <p>Skeleton 导出版本必须精确匹配运行时版本。<br><strong>对策</strong>：审计从 JSON <code>"spine"</code> 字段检测版本。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>✅ 脚本 .meta 自动生成</h4>
+        <p>translator.py 生成 .cs 时自动生成对应 .meta。<br><strong>对策</strong>：无需手动维护 GUID，pipeline 自动处理。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>✅ 预制体直接引用</h4>
+        <p>Phase 4 转换时扫描脚本 GUID，直接写入 YAML。<br><strong>对策</strong>：Phase 5 成为可选步骤，成功率 100%。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>✅ PPU 坐标转换</h4>
+        <p>Cocos 像素值直接导入导致位置巨大。<br><strong>对策</strong>：<code>--ppu 100</code> 自动除以 PPU。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Quick Start -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div class="section-title">快速开始</div>
+    </div>
+    <div class="quickstart">
+      <ol>
+        <li><strong>完整迁移</strong>：<code class="cmd">python scripts/pipeline.py --cocos &lt;cocos-root&gt; --unity &lt;unity-root&gt;</code></li>
+        <li><strong>单阶段执行</strong>：<code class="cmd">python scripts/pipeline.py --cocos &lt;src&gt; --unity &lt;dst&gt; --phase 2</code></li>
+        <li><strong>指定 PPU</strong>：<code class="cmd">python scripts/pipeline.py ... --ppu 100 --convert-pos</code></li>
+        <li><strong>生成图集</strong>：<code class="cmd">python scripts/pipeline.py ... --atlas</code></li>
+        <li><strong>验证报告</strong>：<code class="cmd">python scripts/verify_migration.py --unity &lt;path&gt; --report report.md</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Conventions -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <div class="section-title">约定规范</div>
+    </div>
+    <div class="pitfall-grid">
+      <div class="pitfall-card tip">
+        <h4>📂 资产暂存</h4>
+        <p>所有迁移内容先放 <code>Assets/_Ported/</code>，不覆盖已有 Unity 资产。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>🔑 Manifest 为真</h4>
+        <p><code>manifest.json</code> 是资产身份的唯一真实来源 (Cocos UUID → Unity GUID)。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>🎨 默认管线</h4>
+        <p>Built-in RP + 2D Sprite。URP 需覆盖纹理导入设置和 Shader。</p>
+      </div>
+      <div class="pitfall-card tip">
+        <h4>🤖 AI Agent</h4>
+        <p>支持 OpenAI (OPENAI_API_KEY) / Anthropic (ANTHROPIC_API_KEY)，无 LLM 时降级骨架生成。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div>
+      <span class="ver">cocos-to-unity v3.4.0</span> · MIT License
+    </div>
+    <div>
+      Python 3.9+ · Unity 2020.3+ · 跨平台 · AI Agent Ready
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
